@@ -2,6 +2,7 @@ const User =require("../models/user.model")
 
 
 const jwt = require("jsonwebtoken");
+require('dotenv').config()
 
 
 const generateToken= (user)=>{
@@ -15,9 +16,7 @@ const register =async(req,res)=>{
         let user = await User.findOne({email:req.body.email})
 
         if(user){
-            return res.status(400).send({message:"email already exist"})
-
-           
+            return res.status(400).send({message:"email already exist"}) 
         }
 
         user = await User.create(req.body);
@@ -30,12 +29,27 @@ const register =async(req,res)=>{
     }
 }
 
+const login = async (req, res) => {
+    try{
+        
+        const user = await User.findOne({email : req.body.email})
+        
+        if(!user){
+            return res.status(400).send("Wrong Email or Password")
+        }
+     
+        const match = user.checkPassword(req.body.password)
 
-
-
-
-
-
-
-
-mocule.exports=register;
+      
+        if(!match){
+            return res.status(400).send({message : "Wrong Email or Password"})
+        }
+     
+        const token = generateToken(user)
+        return res.status(200).send({user, token});
+    }
+    catch(err){
+        res.status(400).send({message : err.message})
+    }
+}
+module.exports={register,login}
